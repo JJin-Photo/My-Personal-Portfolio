@@ -91,6 +91,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     workItems.forEach(item => {
         item.addEventListener('click', () => {
+            // 检查是否有外部链接
+            const externalLink = item.getAttribute('data-link');
+            if (externalLink) {
+                window.open(externalLink, '_blank');
+                return;
+            }
+            
             const category = item.querySelector('.work-category').textContent;
             const title = item.querySelector('.work-title').textContent;
             const imagesData = item.getAttribute('data-images');
