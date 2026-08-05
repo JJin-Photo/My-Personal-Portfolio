@@ -151,12 +151,10 @@
                     <span class="work-title">风光</span>
                 </div>
             </div>
-            <div class="work-item" data-category="colorgrading" data-link="https://www.bilibili.com/video/BV1nbuw6eEb7/?share_source=copy_web&vd_source=52bc552ae289d1e2616ee45cd26fb305">
-                <div class="work-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center;">
-                    <div style="text-align: center; color: white;">
-                        <div style="font-size: 48px; margin-bottom: 10px;">🎨</div>
-                        <div style="font-size: 18px; font-weight: 500;">点击查看视频</div>
-                    </div>
+            <div class="work-item" data-category="colorgrading" data-video-link="https://www.bilibili.com/video/BV1nbuw6eEb7/?share_source=copy_web&vd_source=52bc552ae289d1e2616ee45cd26fb305" data-description="调色作品合集，包含多部影片的色彩处理与画面调色案例。">
+                <div class="work-image">
+                    <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Cinematic%20color%20grading%20showcase%2C%20teal%20and%20orange%20color%20tone%2C%20professional%20video%20color%20correction%2C%20moody%20atmospheric%20film%20still%2C%20dark%20cinematic%20lighting&image_size=landscape_4_3" alt="调色作品集">
+                    <div class="play-icon">▶</div>
                 </div>
                 <div class="work-info">
                     <span class="work-category">调色</span>
@@ -183,6 +181,7 @@
                     <span id="modalCategory"></span>
                     <span id="modalTitle"></span>
                     <span id="modalDescription"></span>
+                    <a href="#" id="modalVideoBtn" class="modal-video-btn" style="display:none;">观看视频 →</a>
                 </div>
             <div class="modal-thumbnails" id="modalThumbnails"></div>
         </div>

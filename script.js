@@ -91,27 +91,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
     workItems.forEach(item => {
         item.addEventListener('click', () => {
-            // 检查是否有外部链接
-            const externalLink = item.getAttribute('data-link');
-            if (externalLink) {
-                window.open(externalLink, '_blank');
-                return;
-            }
-            
             const category = item.querySelector('.work-category').textContent;
             const title = item.querySelector('.work-title').textContent;
             const imagesData = item.getAttribute('data-images');
             const description = item.getAttribute('data-description') || '';
-            
-            currentImages = imagesData ? JSON.parse(imagesData) : [item.querySelector('.work-image img').src];
+            const videoLink = item.getAttribute('data-video-link');
+            const videoBtn = document.getElementById('modalVideoBtn');
+
+            // 视频/外链类作品：用封面图弹窗 + 观看按钮
+            if (videoLink) {
+                const coverImg = item.querySelector('.work-image img');
+                currentImages = [coverImg ? coverImg.src : ''];
+            } else {
+                // 图片类作品：隐藏观看按钮
+                if (videoBtn) videoBtn.style.display = 'none';
+                currentImages = imagesData ? JSON.parse(imagesData) : [item.querySelector('.work-image img').src];
+            }
+
             currentIndex = 0;
             currentDescription = description;
-            
+
             modalCategory.textContent = category;
             modalTitle.textContent = title;
             updateModal();
             modalOverlay.classList.add('active');
             document.body.style.overflow = 'hidden';
+
+            // 视频类作品：显示观看按钮并绑定链接
+            if (videoLink && videoBtn) {
+                videoBtn.href = videoLink;
+                videoBtn.target = '_blank';
+                videoBtn.style.display = 'inline-block';
+            }
         });
     });
 
@@ -184,5 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function closeModal() {
         modalOverlay.classList.remove('active');
         document.body.style.overflow = '';
+        const videoBtn = document.getElementById('modalVideoBtn');
+        if (videoBtn) videoBtn.style.display = 'none';
     }
 });

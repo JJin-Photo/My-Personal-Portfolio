@@ -314,16 +314,18 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 40px;
-    height: 40px;
-    background-color: rgba(255, 255, 255, 0.9);
+    width: 50px;
+    height: 50px;
+    background-color: rgba(0, 0, 0, 0.6);
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 0.9rem;
-    opacity: 0;
-    transition: opacity 0.3s ease;
+    font-size: 1.1rem;
+    color: #ffffff;
+    opacity: 0.8;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
 }
 
 .image-count {
@@ -340,6 +342,7 @@ body {
 
 .work-item:hover .play-icon {
     opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1);
 }
 
 .work-info {
@@ -474,6 +477,30 @@ body {
     font-size: 1rem;
     font-weight: 500;
     color: var(--text-color);
+}
+
+#modalDescription {
+    font-size: 0.85rem;
+    color: var(--secondary-text);
+    margin-top: 8px;
+    line-height: 1.5;
+}
+
+.modal-video-btn {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 8px 24px;
+    background-color: var(--text-color);
+    color: var(--bg-color);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border-radius: 6px;
+    transition: opacity 0.3s ease;
+}
+
+.modal-video-btn:hover {
+    opacity: 0.8;
 }
 
 .modal-main-image {
