@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalPrev = document.getElementById('modalPrev');
     const modalNext = document.getElementById('modalNext');
     const modalClose = document.getElementById('modalClose');
-    const videoButton = document.getElementById('modalVideoBtn');
+    const videoSlot = document.getElementById('modalVideoSlot');
     const themeToggle = document.getElementById('themeToggle');
     const versionButton = document.getElementById('versionButton');
     const changelogOverlay = document.getElementById('changelogOverlay');
@@ -28,6 +28,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastFocusedElement = null;
 
     const isDirectImagePath = (path) => /^(assets\/|视频封面\/)/.test(path) || /\.(avif|png|svg)$/i.test(path);
+
+    const videoUrlFor = (work) => {
+        if (work?.category !== 'colorgrading' || work.type !== 'video') return '';
+        return typeof work.video === 'string' ? work.video.trim() : '';
+    };
 
     const pathFor = (path, size, extension = 'jpg') => {
         if (!path || isDirectImagePath(path)) return path;
@@ -134,12 +139,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const structuredData = {
         '@context': 'https://schema.org',
         '@graph': works.map((work) => ({
-            '@type': work.videoLink ? 'CreativeWork' : 'Photograph',
+            '@type': videoUrlFor(work) ? 'CreativeWork' : 'Photograph',
             name: work.title,
             description: work.description,
             image: work.cover,
             creator: { '@type': 'Person', name: '计代源', alternateName: 'JJin' },
-            ...(work.videoLink ? { url: work.videoLink } : {})
+            ...(videoUrlFor(work) ? { url: videoUrlFor(work) } : {})
         }))
     };
     const schemaScript = document.createElement('script');
@@ -156,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const visual = document.createElement('span');
         visual.className = 'work-image';
         visual.append(createResponsiveImage(work.cover, work.coverAlt || `${work.title}摄影作品`, '(max-width: 600px) calc(100vw - 60px), (max-width: 1200px) calc(50vw - 70px), 25vw'));
-        if (work.videoLink) {
+        if (videoUrlFor(work)) {
             const icon = document.createElement('span');
             icon.className = 'play-icon';
             icon.setAttribute('aria-hidden', 'true');
@@ -239,8 +244,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showModalImage() {
         if (!activeWork) return;
-        const imagePath = activeWork.videoLink ? activeWork.cover : activeWork.images[activeIndex];
-        const count = activeWork.videoLink ? 1 : activeWork.images.length;
+        const hasVideo = Boolean(videoUrlFor(activeWork));
+        const imagePath = hasVideo ? activeWork.cover : activeWork.images[activeIndex];
+        const count = hasVideo ? 1 : activeWork.images.length;
         modalImage.alt = imageAlt(activeWork, activeIndex);
         modalImage.srcset = isDirectImagePath(imagePath) ? '' : `${pathFor(imagePath, 'medium', 'webp')} 1600w, ${pathFor(imagePath, 'large', 'webp')} 2560w`;
         modalImage.sizes = '(max-width: 768px) 94vw, 80vw';
@@ -254,7 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderThumbnails() {
         if (!activeWork) return;
-        const images = activeWork.videoLink ? [] : activeWork.images;
+        const images = videoUrlFor(activeWork) ? [] : activeWork.images;
         const fragment = document.createDocumentFragment();
         images.forEach((path, index) => {
             const button = document.createElement('button');
@@ -277,8 +283,18 @@ document.addEventListener('DOMContentLoaded', () => {
         modalCategory.textContent = work.categoryLabel;
         modalTitle.textContent = work.title;
         modalDescription.textContent = work.description || '';
-        videoButton.hidden = !work.videoLink;
-        if (work.videoLink) { videoButton.href = work.videoLink; videoButton.target = '_blank'; }
+        const videoUrl = videoUrlFor(work);
+        videoSlot?.replaceChildren();
+        if (videoSlot && videoUrl) {
+            const link = document.createElement('a');
+            link.id = 'modalVideoBtn';
+            link.className = 'modal-video-btn';
+            link.href = videoUrl;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.textContent = '观看视频 →';
+            videoSlot.append(link);
+        }
         showModalImage();
         modal.hidden = false;
         requestAnimationFrame(() => modal.classList.add('active'));

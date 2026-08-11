@@ -1,7 +1,16 @@
 window.SITE_VERSION = {
-    version: '1.0.0',
+    version: '1.0.1',
     date: '2026-08-11',
     changelog: [
+        {
+            version: '1.0.1',
+            date: '2026-08-11',
+            changes: [
+                '修复 GitHub Pages 中下划线开头图片无法加载的问题',
+                '统一作品卡片封面目录与固定文件名',
+                '仅为包含有效视频的调色作品显示观看视频入口'
+            ]
+        },
         {
             version: '1.0.0',
             date: '2026-08-11',
