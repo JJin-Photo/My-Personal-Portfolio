@@ -12,4 +12,6 @@
 
 每个封面文件使用作品 `id` 作为固定文件名。更换封面时直接覆盖同名文件并保留原扩展名，无需修改 HTML 或 JavaScript。例如，“仙女棒”的封面固定为 `photography/sparkler.jpg`。
 
-新增作品时，在 `works-data.js` 中填写唯一的 `id`、`category`、`cover` 和 `images`。只有调色作品可额外设置 `type: 'video'` 与有效的 `video` 链接。
+新增作品时，在 `works-data.js` 中填写唯一的 `id`、`category`、`cover` 和 `images`。`date` 用于项目详情中的年份，`coverRatio` 可填写 `landscape`、`portrait`、`cinematic` 或 `square`。只有调色作品可额外设置 `type: 'video'` 与有效的 `video` 链接。
+
+调色项目的真实 Before / After 素材规范见 `assets/images/color-grading/color-grading/README.md`。

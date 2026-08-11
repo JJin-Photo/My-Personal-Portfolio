@@ -1,7 +1,17 @@
 window.SITE_VERSION = {
-    version: '1.0.1',
+    version: '1.1.0',
     date: '2026-08-11',
     changelog: [
+        {
+            version: '1.1.0',
+            date: '2026-08-11',
+            changes: [
+                '升级首页与作品页的摄影杂志式视觉排版',
+                '新增 About 个人介绍页面',
+                '新增项目式作品详情与调色 Before / After 组件',
+                '建立横图、竖图和电影画幅封面比例体系'
+            ]
+        },
         {
             version: '1.0.1',
             date: '2026-08-11',

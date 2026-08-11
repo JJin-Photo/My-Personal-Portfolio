@@ -17,7 +17,7 @@
     <meta name="twitter:description" content="风光、人像、街头、动物、剧照与调色作品。">
     <meta name="twitter:image" content="https://jjin-photo.github.io/My-Personal-Portfolio/assets/images/large/%E6%91%84%E5%BD%B1/%E9%A3%8E%E5%85%89/0%20%28105%29.jpg">
     <title>计代源 JJin｜个人摄影作品集</title>
-    <link rel="stylesheet" href="styles.css?v=6">
+    <link rel="stylesheet" href="styles.css?v=7">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Source+Han+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -31,6 +31,7 @@
         <nav class="nav" aria-label="主导航">
             <a href="index.html" class="nav-link active" aria-current="page">主页</a>
             <a href="works.html" class="nav-link">作品</a>
+            <a href="about.html" class="nav-link">About</a>
             <button class="theme-toggle" id="themeToggle" type="button" aria-label="切换深色主题" aria-pressed="false">🌙</button>
         </nav>
     </header>
@@ -38,15 +39,21 @@
     <main>
         <section class="hero" aria-labelledby="pageTitle">
             <div class="hero-content">
-                <div class="category-grid">
-                    <h1 id="pageTitle" class="visually-hidden">计代源 JJin 个人摄影作品集</h1>
-                    <div class="category-row">
-                        <a href="works.html?category=photography" class="category-link">摄影</a>
-                        <a href="works.html?category=film" class="category-link">胶片</a>
+                <div class="hero-primary">
+                    <div class="hero-intro">
+                        <p class="eyebrow">JJIN / PORTFOLIO</p>
+                        <h1 id="pageTitle"><span>Photographer</span><span>/ Colorist</span></h1>
+                        <p class="hero-note">Photography · Film Stills · Color Grading</p>
                     </div>
-                    <div class="category-row">
-                        <a href="works.html?category=stills" class="category-link">剧照</a>
-                        <a href="works.html?category=colorgrading" class="category-link">调色</a>
+                    <div class="category-grid" aria-label="作品分类">
+                        <div class="category-row">
+                            <a href="works.html?category=photography" class="category-link"><span>01</span>摄影</a>
+                            <a href="works.html?category=film" class="category-link"><span>02</span>胶片</a>
+                        </div>
+                        <div class="category-row">
+                            <a href="works.html?category=stills" class="category-link"><span>03</span>剧照</a>
+                            <a href="works.html?category=colorgrading" class="category-link"><span>04</span>调色</a>
+                        </div>
                     </div>
                 </div>
                 <aside class="contact-section" aria-label="摄影师联系信息">
@@ -63,7 +70,7 @@
         </section>
 
         <section class="selected-works" aria-labelledby="selectedWorksTitle">
-            <div class="section-header"><h2 id="selectedWorksTitle">精选作品</h2></div>
+            <div class="section-header"><p>CURATED SELECTION</p><h2 id="selectedWorksTitle">SELECTED WORKS <span>精选作品</span></h2></div>
             <div class="works-grid" id="worksGrid" aria-live="polite"></div>
         </section>
     </main>
@@ -80,17 +87,42 @@
     </div>
 
     <div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDescription" hidden>
-        <div class="modal-content">
+        <article class="modal-content">
             <button class="modal-close" id="modalClose" type="button" aria-label="关闭作品预览">&times;</button>
-            <button class="modal-prev" id="modalPrev" type="button" aria-label="查看上一张图片">‹</button>
-            <button class="modal-next" id="modalNext" type="button" aria-label="查看下一张图片">›</button>
-            <div class="modal-main-image"><img id="modalImage" src="" alt="" loading="lazy" decoding="async"><div class="modal-counter" id="modalCounter"></div></div>
-            <div class="modal-info"><span id="modalCategory"></span><span id="modalTitle"></span><span id="modalDescription"></span><span id="modalVideoSlot"></span></div>
+            <header class="modal-project-header">
+                <span class="modal-project-index" id="modalIndex">01</span>
+                <div class="modal-project-heading">
+                    <span class="modal-project-kicker" id="modalCategory"></span>
+                    <h2 id="modalTitle"></h2>
+                    <p id="modalDescription"></p>
+                </div>
+                <dl class="modal-project-meta">
+                    <div><dt>YEAR</dt><dd id="modalYear">—</dd></div>
+                    <div><dt>TYPE</dt><dd id="modalType">—</dd></div>
+                </dl>
+            </header>
+            <div class="modal-visual">
+                <button class="modal-prev" id="modalPrev" type="button" aria-label="查看上一张图片">‹</button>
+                <button class="modal-next" id="modalNext" type="button" aria-label="查看下一张图片">›</button>
+                <div class="modal-main-image"><img id="modalImage" alt="" loading="lazy" decoding="async"><div class="modal-counter" id="modalCounter"></div></div>
+            </div>
+            <section class="comparison-section" id="comparisonSection" aria-labelledby="comparisonTitle" hidden>
+                <div class="comparison-heading"><p>COLOR STUDY</p><h3 id="comparisonTitle">BEFORE / AFTER</h3></div>
+                <div class="comparison-stage" id="comparisonStage">
+                    <img class="comparison-after" id="comparisonAfter" alt="调色后的画面" decoding="async">
+                    <img class="comparison-before" id="comparisonBefore" alt="调色前的画面" decoding="async">
+                    <span class="comparison-label comparison-label-before">BEFORE</span>
+                    <span class="comparison-label comparison-label-after">AFTER</span>
+                    <span class="comparison-divider" aria-hidden="true"></span>
+                    <input id="comparisonRange" type="range" min="0" max="100" value="50" aria-label="拖动查看调色前后对比">
+                </div>
+            </section>
+            <div class="modal-actions" id="modalVideoSlot"></div>
             <div class="modal-thumbnails" id="modalThumbnails" aria-label="作品缩略图"></div>
-        </div>
+        </article>
     </div>
-    <script src="works-data.js?v=7"></script>
-    <script src="version.js?v=2"></script>
-    <script src="script.js?v=7"></script>
+    <script src="works-data.js?v=8"></script>
+    <script src="version.js?v=3"></script>
+    <script src="script.js?v=8"></script>
 </body>
 </html>

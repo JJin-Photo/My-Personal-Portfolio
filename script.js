@@ -13,7 +13,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalPrev = document.getElementById('modalPrev');
     const modalNext = document.getElementById('modalNext');
     const modalClose = document.getElementById('modalClose');
+    const modalIndex = document.getElementById('modalIndex');
+    const modalYear = document.getElementById('modalYear');
+    const modalType = document.getElementById('modalType');
     const videoSlot = document.getElementById('modalVideoSlot');
+    const comparisonSection = document.getElementById('comparisonSection');
+    const comparisonStage = document.getElementById('comparisonStage');
+    const comparisonBefore = document.getElementById('comparisonBefore');
+    const comparisonAfter = document.getElementById('comparisonAfter');
+    const comparisonRange = document.getElementById('comparisonRange');
     const themeToggle = document.getElementById('themeToggle');
     const versionButton = document.getElementById('versionButton');
     const changelogOverlay = document.getElementById('changelogOverlay');
@@ -32,6 +40,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const videoUrlFor = (work) => {
         if (work?.category !== 'colorgrading' || work.type !== 'video') return '';
         return typeof work.video === 'string' ? work.video.trim() : '';
+    };
+
+    const projectTypeFor = (work) => ({
+        photography: 'Photography',
+        stills: 'Film Stills',
+        polaroid: 'Polaroid',
+        film: 'Film Photography',
+        colorgrading: 'Color Grading'
+    })[work?.category] || work?.categoryLabel || 'Creative Work';
+
+    const comparisonFor = (work) => {
+        if (work?.category !== 'colorgrading') return null;
+        const before = work.comparison?.before;
+        const after = work.comparison?.after;
+        return typeof before === 'string' && before && typeof after === 'string' && after ? { before, after } : null;
     };
 
     const pathFor = (path, size, extension = 'jpg') => {
@@ -157,10 +180,21 @@ document.addEventListener('DOMContentLoaded', () => {
         card.type = 'button';
         card.className = 'work-item';
         card.dataset.workId = work.id;
+        card.dataset.category = work.category;
         card.setAttribute('aria-label', `查看作品：${work.title}`);
         const visual = document.createElement('span');
-        visual.className = 'work-image';
+        visual.className = `work-image ratio-${work.coverRatio || 'landscape'}`;
         visual.append(createResponsiveImage(work.cover, work.coverAlt || `${work.title}摄影作品`, '(max-width: 600px) calc(100vw - 60px), (max-width: 1200px) calc(50vw - 70px), 25vw'));
+        const overlay = document.createElement('span');
+        overlay.className = 'work-overlay';
+        const overlayTitle = document.createElement('span');
+        overlayTitle.className = 'work-overlay-title';
+        overlayTitle.textContent = work.title;
+        const overlayMeta = document.createElement('span');
+        overlayMeta.className = 'work-overlay-meta';
+        overlayMeta.textContent = `${projectTypeFor(work)}${work.date ? ` / ${work.date}` : ''}`;
+        overlay.append(overlayTitle, overlayMeta);
+        visual.append(overlay);
         if (videoUrlFor(work)) {
             const icon = document.createElement('span');
             icon.className = 'play-icon';
@@ -177,13 +211,17 @@ document.addEventListener('DOMContentLoaded', () => {
         info.className = 'work-info';
         const category = document.createElement('span');
         category.className = 'work-category';
-        category.textContent = work.categoryLabel;
+        category.textContent = `${work.categoryLabel}${work.date ? ` / ${work.date}` : ''}`;
         const title = document.createElement('span');
         title.className = 'work-title';
         title.textContent = work.title;
-        info.append(category, title);
+        info.append(title, category);
         card.append(visual, info);
         return card;
+    }
+
+    function updatePageMode() {
+        document.body.classList.toggle('colorgrading-view', page === 'works' && activeFilter === 'colorgrading');
     }
 
     function renderFilters() {
@@ -208,6 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderWorks() {
+        updatePageMode();
         if (!grid) return;
         const shownWorks = page === 'home' ? works.filter((work) => work.selected) : works.filter((work) => activeFilter === 'all' || work.category === activeFilter);
         if (shownWorks.length) {
@@ -243,7 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showModalImage() {
-        if (!activeWork) return;
+        if (!activeWork || !modalImage) return;
         const hasVideo = Boolean(videoUrlFor(activeWork));
         const imagePath = hasVideo ? activeWork.cover : activeWork.images[activeIndex];
         const count = hasVideo ? 1 : activeWork.images.length;
@@ -256,6 +295,24 @@ document.addEventListener('DOMContentLoaded', () => {
         modalPrev.hidden = count <= 1;
         modalNext.hidden = count <= 1;
         renderThumbnails();
+    }
+
+    function updateComparison(value) {
+        if (!comparisonStage) return;
+        comparisonStage.style.setProperty('--split', `${value}%`);
+    }
+
+    function renderComparison(work) {
+        if (!comparisonSection || !comparisonBefore || !comparisonAfter || !comparisonRange) return;
+        const comparison = comparisonFor(work);
+        comparisonSection.hidden = !comparison;
+        comparisonBefore.removeAttribute('src');
+        comparisonAfter.removeAttribute('src');
+        if (!comparison) return;
+        comparisonRange.value = '50';
+        updateComparison(50);
+        setImageSource(comparisonBefore, comparison.before, 'large');
+        setImageSource(comparisonAfter, comparison.after, 'large');
     }
 
     function renderThumbnails() {
@@ -277,12 +334,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function openModal(work) {
+        if (!modal || !modalImage || !modalClose) return;
         activeWork = work;
         activeIndex = 0;
         lastFocusedElement = document.activeElement;
         modalCategory.textContent = work.categoryLabel;
         modalTitle.textContent = work.title;
         modalDescription.textContent = work.description || '';
+        if (modalIndex) modalIndex.textContent = String(works.indexOf(work) + 1).padStart(2, '0');
+        if (modalYear) modalYear.textContent = work.date || '—';
+        if (modalType) modalType.textContent = projectTypeFor(work);
+        modal.classList.toggle('is-colorgrading', work.category === 'colorgrading');
         const videoUrl = videoUrlFor(work);
         videoSlot?.replaceChildren();
         if (videoSlot && videoUrl) {
@@ -292,9 +354,10 @@ document.addEventListener('DOMContentLoaded', () => {
             link.href = videoUrl;
             link.target = '_blank';
             link.rel = 'noopener noreferrer';
-            link.textContent = '观看视频 →';
+            link.textContent = '观看视频 / WATCH VIDEO →';
             videoSlot.append(link);
         }
+        renderComparison(work);
         showModalImage();
         modal.hidden = false;
         requestAnimationFrame(() => modal.classList.add('active'));
@@ -303,10 +366,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function closeModal() {
+        if (!modal || !modalImage) return;
         modal.classList.remove('active');
+        modal.classList.remove('is-colorgrading');
         modal.hidden = true;
         document.body.classList.remove('modal-open');
-        modalImage.removeAttribute('srcset'); modalImage.src = '';
+        modalImage.removeAttribute('srcset');
+        modalImage.removeAttribute('src');
+        comparisonBefore?.removeAttribute('src');
+        comparisonAfter?.removeAttribute('src');
         activeWork = null;
         lastFocusedElement?.focus();
     }
@@ -339,6 +407,7 @@ document.addEventListener('DOMContentLoaded', () => {
     modalClose?.addEventListener('click', closeModal);
     modalPrev?.addEventListener('click', () => moveImage(-1));
     modalNext?.addEventListener('click', () => moveImage(1));
+    comparisonRange?.addEventListener('input', (event) => updateComparison(event.target.value));
     modal?.addEventListener('click', (event) => { if (event.target === modal) closeModal(); });
     versionButton?.addEventListener('click', openChangelog);
     changelogClose?.addEventListener('click', closeChangelog);
@@ -367,7 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             return;
         }
-        if (modal.hidden) return;
+        if (!modal || modal.hidden) return;
         if (event.key === 'Escape') closeModal();
         if (event.key === 'ArrowLeft') moveImage(-1);
         if (event.key === 'ArrowRight') moveImage(1);
