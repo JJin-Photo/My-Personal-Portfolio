@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const works = Array.isArray(window.PORTFOLIO_WORKS) ? window.PORTFOLIO_WORKS : [];
+    const aboutData = window.PORTFOLIO_ABOUT && typeof window.PORTFOLIO_ABOUT === 'object' ? window.PORTFOLIO_ABOUT : null;
     const page = document.body.dataset.page;
     const grid = document.getElementById('worksGrid');
     const filterContainer = document.getElementById('categoryFilter');
@@ -34,8 +35,16 @@ document.addEventListener('DOMContentLoaded', () => {
     let activeWork = null;
     let activeIndex = 0;
     let lastFocusedElement = null;
+    let comparisonRequestId = 0;
 
     const isDirectImagePath = (path) => /^(assets\/|视频封面\/)/.test(path) || /\.(avif|png|svg)$/i.test(path);
+
+    const orientationFor = (work) => {
+        const orientation = work?.orientation;
+        return ['landscape', 'portrait', 'square', 'cinematic'].includes(orientation) ? orientation : 'landscape';
+    };
+
+    const isPortraitWork = (work) => orientationFor(work) === 'portrait';
 
     const videoUrlFor = (work) => {
         if (work?.category !== 'colorgrading' || work.type !== 'video') return '';
@@ -43,17 +52,17 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const projectTypeFor = (work) => ({
-        photography: 'Photography',
-        stills: 'Film Stills',
-        polaroid: 'Polaroid',
-        film: 'Film Photography',
-        colorgrading: 'Color Grading'
-    })[work?.category] || work?.categoryLabel || 'Creative Work';
+        photography: '摄影',
+        stills: '剧照',
+        polaroid: '宝丽来',
+        film: '胶片',
+        colorgrading: '调色'
+    })[work?.category] || work?.categoryLabel || '创作项目';
 
     const comparisonFor = (work) => {
         if (work?.category !== 'colorgrading') return null;
-        const before = work.comparison?.before;
-        const after = work.comparison?.after;
+        const before = work.beforeAfter?.before;
+        const after = work.beforeAfter?.after;
         return typeof before === 'string' && before && typeof after === 'string' && after ? { before, after } : null;
     };
 
@@ -91,6 +100,208 @@ document.addEventListener('DOMContentLoaded', () => {
         return picture;
     };
 
+    function createPortraitPicture(portrait) {
+        if (!portrait?.src) return null;
+        const picture = document.createElement('picture');
+        if (portrait.webp) {
+            const source = document.createElement('source');
+            source.type = 'image/webp';
+            source.srcset = portrait.webp;
+            picture.append(source);
+        }
+        const image = document.createElement('img');
+        image.src = portrait.src;
+        image.alt = portrait.alt || '';
+        image.width = 640;
+        image.height = 800;
+        image.decoding = 'async';
+        image.fetchPriority = 'high';
+        picture.append(image);
+        return picture;
+    }
+
+    function renderAboutData() {
+        if (!aboutData) return;
+        document.querySelectorAll('[data-about-field]').forEach((element) => {
+            const value = aboutData[element.dataset.aboutField];
+            if (typeof value === 'string') element.textContent = value;
+        });
+
+        ['heroProfilePortrait', 'aboutPortrait'].forEach((id) => {
+            const target = document.getElementById(id);
+            const portrait = createPortraitPicture(aboutData.portrait);
+            if (target && portrait) target.replaceChildren(portrait);
+        });
+
+        const aboutRole = document.getElementById('aboutRole');
+        if (aboutRole && typeof aboutData.role === 'string') {
+            const [primaryRole, secondaryRole] = aboutData.role.split(/\s*\/\s*/);
+            aboutRole.replaceChildren(document.createTextNode(primaryRole || ''));
+            if (secondaryRole) {
+                const separator = document.createElement('span');
+                separator.textContent = '/';
+                aboutRole.append(' ', separator, ` ${secondaryRole}`);
+            }
+        }
+
+        const createTimelineEntry = (item) => {
+            const entry = document.createElement('article');
+            entry.className = 'about-entry';
+            const period = document.createElement('time');
+            period.className = 'about-entry-period';
+            period.textContent = item.period || '';
+            const content = document.createElement('div');
+            content.className = 'about-entry-content';
+            const title = document.createElement('h3');
+            title.textContent = item.organization || '';
+            const role = document.createElement('p');
+            role.className = 'about-entry-role';
+            role.textContent = item.role || '';
+            content.append(title, role);
+            if (item.description) {
+                const description = document.createElement('p');
+                description.className = 'about-entry-description';
+                description.textContent = item.description;
+                content.append(description);
+            }
+            if (Array.isArray(item.details) && item.details.length) {
+                const list = document.createElement('ul');
+                list.className = 'about-entry-details';
+                item.details.forEach((detail) => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = detail;
+                    list.append(listItem);
+                });
+                content.append(list);
+            }
+            entry.append(period, content);
+            return entry;
+        };
+
+        const renderTimeline = (id, entries) => {
+            const container = document.getElementById(id);
+            if (container && Array.isArray(entries)) container.replaceChildren(...entries.map(createTimelineEntry));
+        };
+
+        renderTimeline('aboutExperience', aboutData.experience);
+        renderTimeline('aboutEducation', aboutData.education);
+
+        const renderProjectRows = (id, entries, isStills = false) => {
+            const container = document.getElementById(id);
+            if (!container || !Array.isArray(entries)) return;
+            container.replaceChildren(...entries.map((item) => {
+                const row = document.createElement('article');
+                row.className = 'about-project-row';
+                const year = document.createElement('time');
+                year.textContent = item.year || '';
+                const heading = document.createElement('div');
+                const title = document.createElement('h3');
+                title.textContent = isStills ? item.title : item.name;
+                heading.append(title);
+                if (isStills && item.context) {
+                    const context = document.createElement('p');
+                    context.textContent = item.context;
+                    heading.append(context);
+                }
+                const role = document.createElement('p');
+                role.className = 'about-project-role';
+                role.textContent = isStills ? item.note || '剧照' : item.role;
+                row.append(year, heading, role);
+                return row;
+            }));
+        };
+
+        renderProjectRows('aboutProjects', aboutData.projects);
+        renderProjectRows('aboutStills', aboutData.stillsExperience, true);
+
+        const skills = document.getElementById('aboutSkills');
+        if (skills && Array.isArray(aboutData.skills)) {
+            const skillEntries = aboutData.skills.map((skill) => {
+                const entry = document.createElement('div');
+                entry.className = 'about-skill';
+                const title = document.createElement('h3');
+                title.textContent = skill.title;
+                const summary = document.createElement('p');
+                summary.className = 'about-skill-summary';
+                summary.textContent = skill.summary;
+                const details = document.createElement('p');
+                details.className = 'about-skill-details';
+                details.textContent = (skill.details || []).join(' · ');
+                entry.append(title, summary, details);
+                return entry;
+            });
+            if (Array.isArray(aboutData.tools)) {
+                const tools = document.createElement('div');
+                tools.className = 'about-skill about-skill-tools';
+                const title = document.createElement('h3');
+                title.textContent = '常用软件';
+                const list = document.createElement('ul');
+                list.className = 'tools-list';
+                aboutData.tools.forEach((tool) => {
+                    const item = document.createElement('li');
+                    item.textContent = tool;
+                    list.append(item);
+                });
+                tools.append(title, list);
+                skillEntries.push(tools);
+            }
+            skills.replaceChildren(...skillEntries);
+        }
+
+        const credentials = document.getElementById('aboutCredentials');
+        if (credentials) {
+            const groups = [
+                { title: '资质', items: aboutData.credentials || [], featuredIndex: 0 },
+                { title: '荣誉与身份', items: aboutData.honors || [], featuredIndex: -1 }
+            ].map((group) => {
+                const section = document.createElement('div');
+                section.className = 'about-credential-group';
+                const title = document.createElement('h3');
+                title.textContent = group.title;
+                const list = document.createElement('ul');
+                group.items.forEach((value, index) => {
+                    const item = document.createElement('li');
+                    item.textContent = value;
+                    if (index === group.featuredIndex) item.className = 'is-featured';
+                    list.append(item);
+                });
+                section.append(title, list);
+                return section;
+            });
+            credentials.replaceChildren(...groups);
+        }
+
+        const contact = document.getElementById('aboutContact');
+        if (contact && aboutData.contact) {
+            const fields = [];
+            if (aboutData.contact.email) {
+                const email = document.createElement('a');
+                email.href = `mailto:${aboutData.contact.email}`;
+                email.textContent = aboutData.contact.email;
+                fields.push(email);
+            }
+            if (aboutData.contact.phone) {
+                const phone = document.createElement('a');
+                phone.href = `tel:${aboutData.contact.phone}`;
+                phone.textContent = aboutData.contact.phoneLabel || aboutData.contact.phone;
+                fields.push(phone);
+            }
+            if (aboutData.contact.wechat) {
+                const wechat = document.createElement('span');
+                wechat.textContent = `微信：${aboutData.contact.wechat}`;
+                fields.push(wechat);
+            }
+            if (aboutData.contact.location) {
+                const location = document.createElement('span');
+                location.textContent = `常驻：${aboutData.contact.location}`;
+                fields.push(location);
+            }
+            contact.replaceChildren(...fields);
+        }
+    }
+
+    renderAboutData();
+
     const updateThemeToggle = (theme) => {
         if (!themeToggle) return;
         const isDark = theme === 'dark';
@@ -113,14 +324,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!versionButton || !changelogList || !siteVersion) return;
         const versionText = `v${siteVersion.version}`;
         const isNew = localStorage.getItem('lastViewedVersion') !== siteVersion.version;
-        versionButton.textContent = isNew ? `${versionText} NEW` : versionText;
+        versionButton.textContent = isNew ? `${versionText} 新` : versionText;
         versionButton.setAttribute('aria-label', `查看网站更新日志，当前版本 ${versionText}`);
         const fragment = document.createDocumentFragment();
         (siteVersion.changelog || []).forEach((release) => {
             const section = document.createElement('section');
             section.className = 'changelog-release';
             const title = document.createElement('h3');
-            title.textContent = release.version.startsWith('v') || release.version === 'Earlier versions' ? release.version : `v${release.version}`;
+            title.textContent = release.version.startsWith('v') || release.version === '早期版本' ? release.version : `v${release.version}`;
             if (release.date) {
                 const date = document.createElement('time');
                 date.dateTime = release.date;
@@ -159,32 +370,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderChangelog();
 
+    const personSchema = {
+        '@type': 'Person',
+        '@id': 'https://jjin-photo.github.io/My-Personal-Portfolio/#person',
+        name: aboutData?.name || '计代源',
+        alternateName: 'JJin',
+        jobTitle: aboutData?.role || '摄影师 / 调色师',
+        email: aboutData?.contact?.email ? `mailto:${aboutData.contact.email}` : undefined,
+        address: aboutData?.contact?.location ? { '@type': 'PostalAddress', addressLocality: aboutData.contact.location } : undefined,
+        url: 'https://jjin-photo.github.io/My-Personal-Portfolio/about.html'
+    };
     const structuredData = {
         '@context': 'https://schema.org',
-        '@graph': works.map((work) => ({
+        '@graph': [personSchema, ...works.map((work) => ({
             '@type': videoUrlFor(work) ? 'CreativeWork' : 'Photograph',
             name: work.title,
             description: work.description,
             image: work.cover,
-            creator: { '@type': 'Person', name: '计代源', alternateName: 'JJin' },
+            creator: { '@id': personSchema['@id'] },
             ...(videoUrlFor(work) ? { url: videoUrlFor(work) } : {})
-        }))
+        }))]
     };
     const schemaScript = document.createElement('script');
     schemaScript.type = 'application/ld+json';
     schemaScript.textContent = JSON.stringify(structuredData);
     document.head.append(schemaScript);
 
-    function createCard(work) {
+    function createCard(work, layoutClass = '') {
         const card = document.createElement('button');
         card.type = 'button';
-        card.className = 'work-item';
+        const orientation = orientationFor(work);
+        card.className = `work-item orientation-${orientation}${layoutClass ? ` ${layoutClass}` : ''}`;
         card.dataset.workId = work.id;
         card.dataset.category = work.category;
         card.setAttribute('aria-label', `查看作品：${work.title}`);
         const visual = document.createElement('span');
-        visual.className = `work-image ratio-${work.coverRatio || 'landscape'}`;
-        visual.append(createResponsiveImage(work.cover, work.coverAlt || `${work.title}摄影作品`, '(max-width: 600px) calc(100vw - 60px), (max-width: 1200px) calc(50vw - 70px), 25vw'));
+        visual.className = `work-image ratio-${orientation}`;
+        const desktopSize = layoutClass.includes('is-span-4') ? '32vw' : layoutClass.includes('is-span-6') ? '48vw' : '76vw';
+        visual.append(createResponsiveImage(work.cover, work.coverAlt || `${work.title}摄影作品`, `(max-width: 700px) calc(100vw - 40px), (max-width: 1024px) calc(50vw - 42px), ${desktopSize}`));
         const overlay = document.createElement('span');
         overlay.className = 'work-overlay';
         const overlayTitle = document.createElement('span');
@@ -220,6 +443,46 @@ document.addEventListener('DOMContentLoaded', () => {
         return card;
     }
 
+    function createEditorialRows(shownWorks) {
+        const rows = [];
+        let index = 0;
+        let pairRowsSinceFeature = 0;
+        let featureCount = 0;
+
+        const addFeature = (work) => {
+            const row = document.createElement('div');
+            row.className = `editorial-row editorial-row--feature${featureCount % 2 ? ' is-offset' : ''}${isPortraitWork(work) ? ' is-portrait' : ''}`;
+            row.append(createCard(work, 'is-feature'));
+            rows.push(row);
+            featureCount += 1;
+            pairRowsSinceFeature = 0;
+        };
+
+        const addPair = (first, second) => {
+            const row = document.createElement('div');
+            row.className = 'editorial-row editorial-row--pair';
+            const isMixed = isPortraitWork(first) !== isPortraitWork(second);
+            const firstSpan = isMixed ? (isPortraitWork(first) ? 4 : 8) : 6;
+            const secondSpan = isMixed ? (isPortraitWork(second) ? 4 : 8) : 6;
+            row.append(createCard(first, `is-span-${firstSpan}`), createCard(second, `is-span-${secondSpan}`));
+            rows.push(row);
+            pairRowsSinceFeature += 1;
+        };
+
+        while (index < shownWorks.length) {
+            const current = shownWorks[index];
+            const isLast = index === shownWorks.length - 1;
+            if (index === 0 || isLast || (pairRowsSinceFeature >= 3 && !isPortraitWork(current))) {
+                addFeature(current);
+                index += 1;
+                continue;
+            }
+            addPair(current, shownWorks[index + 1]);
+            index += 2;
+        }
+        return rows;
+    }
+
     function updatePageMode() {
         document.body.classList.toggle('colorgrading-view', page === 'works' && activeFilter === 'colorgrading');
     }
@@ -251,7 +514,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const shownWorks = page === 'home' ? works.filter((work) => work.selected) : works.filter((work) => activeFilter === 'all' || work.category === activeFilter);
         if (shownWorks.length) {
             grid.classList.remove('is-empty');
-            grid.replaceChildren(...shownWorks.map(createCard));
+            grid.replaceChildren(...createEditorialRows(shownWorks));
             return;
         }
         const emptyState = document.createElement('div');
@@ -302,17 +565,34 @@ document.addEventListener('DOMContentLoaded', () => {
         comparisonStage.style.setProperty('--split', `${value}%`);
     }
 
-    function renderComparison(work) {
+    const preloadImage = (source) => new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = resolve;
+        image.onerror = reject;
+        image.src = source;
+    });
+
+    async function renderComparison(work) {
         if (!comparisonSection || !comparisonBefore || !comparisonAfter || !comparisonRange) return;
+        const requestId = ++comparisonRequestId;
         const comparison = comparisonFor(work);
-        comparisonSection.hidden = !comparison;
+        comparisonSection.hidden = true;
         comparisonBefore.removeAttribute('src');
         comparisonAfter.removeAttribute('src');
         if (!comparison) return;
+        const beforeSource = pathFor(comparison.before, 'large');
+        const afterSource = pathFor(comparison.after, 'large');
+        try {
+            await Promise.all([preloadImage(beforeSource), preloadImage(afterSource)]);
+        } catch {
+            return;
+        }
+        if (requestId !== comparisonRequestId || activeWork !== work) return;
         comparisonRange.value = '50';
         updateComparison(50);
         setImageSource(comparisonBefore, comparison.before, 'large');
         setImageSource(comparisonAfter, comparison.after, 'large');
+        comparisonSection.hidden = false;
     }
 
     function renderThumbnails() {
@@ -354,7 +634,7 @@ document.addEventListener('DOMContentLoaded', () => {
             link.href = videoUrl;
             link.target = '_blank';
             link.rel = 'noopener noreferrer';
-            link.textContent = '观看视频 / WATCH VIDEO →';
+            link.textContent = '观看视频 →';
             videoSlot.append(link);
         }
         renderComparison(work);
@@ -375,6 +655,7 @@ document.addEventListener('DOMContentLoaded', () => {
         modalImage.removeAttribute('src');
         comparisonBefore?.removeAttribute('src');
         comparisonAfter?.removeAttribute('src');
+        comparisonRequestId += 1;
         activeWork = null;
         lastFocusedElement?.focus();
     }

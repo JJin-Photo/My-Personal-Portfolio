@@ -17,13 +17,10 @@
     <meta name="twitter:description" content="风光、人像、街头、动物、剧照与调色作品。">
     <meta name="twitter:image" content="https://jjin-photo.github.io/My-Personal-Portfolio/assets/images/large/%E6%91%84%E5%BD%B1/%E9%A3%8E%E5%85%89/0%20%28105%29.jpg">
     <title>计代源 JJin｜个人摄影作品集</title>
-    <link rel="stylesheet" href="styles.css?v=7">
+    <link rel="stylesheet" href="styles.css?v=17">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Source+Han+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <script type="application/ld+json">
-    {"@context":"https://schema.org","@type":"Person","name":"计代源","alternateName":"JJin","jobTitle":"摄影师","address":{"@type":"PostalAddress","addressLocality":"成都","addressCountry":"CN"},"email":"mailto:2356925219@qq.com","url":"https://jjin-photo.github.io/My-Personal-Portfolio/"}
-    </script>
 </head>
 <body data-page="home">
     <header class="header">
@@ -31,7 +28,7 @@
         <nav class="nav" aria-label="主导航">
             <a href="index.html" class="nav-link active" aria-current="page">主页</a>
             <a href="works.html" class="nav-link">作品</a>
-            <a href="about.html" class="nav-link">About</a>
+            <a href="about.html" class="nav-link">关于我</a>
             <button class="theme-toggle" id="themeToggle" type="button" aria-label="切换深色主题" aria-pressed="false">🌙</button>
         </nav>
     </header>
@@ -40,11 +37,6 @@
         <section class="hero" aria-labelledby="pageTitle">
             <div class="hero-content">
                 <div class="hero-primary">
-                    <div class="hero-intro">
-                        <p class="eyebrow">JJIN / PORTFOLIO</p>
-                        <h1 id="pageTitle"><span>Photographer</span><span>/ Colorist</span></h1>
-                        <p class="hero-note">Photography · Film Stills · Color Grading</p>
-                    </div>
                     <div class="category-grid" aria-label="作品分类">
                         <div class="category-row">
                             <a href="works.html?category=photography" class="category-link"><span>01</span>摄影</a>
@@ -56,21 +48,26 @@
                         </div>
                     </div>
                 </div>
-                <aside class="contact-section" aria-label="摄影师联系信息">
-                    <div class="contact-photo">
-                        <picture><source type="image/webp" srcset="assets/images/thumbnail/证件照/13377005177280844.webp"><img src="assets/images/thumbnail/证件照/13377005177280844.jpg" width="100" height="100" alt="摄影师计代源头像" loading="lazy" decoding="async"></picture>
-                        <span class="contact-name">计代源</span>
-                    </div>
-                    <div class="contact-info">
-                        <p class="bass-text">常驻城市</p><p>📍 成都</p><h2>联系方式</h2>
-                        <p><a href="mailto:2356925219@qq.com">2356925219@qq.com</a></p><p><a href="tel:+8618708513247">18708513247</a></p><p>微信：jdy2356925219</p>
-                    </div>
+                <aside class="profile-preview" aria-label="关于摄影师">
+                    <a class="profile-preview-link" href="about.html">
+                        <span class="profile-kicker">个人简介</span>
+                        <span class="profile-portrait" id="heroProfilePortrait"></span>
+                        <span class="profile-copy">
+                            <span class="profile-heading">
+                                <h1 class="profile-name" id="pageTitle" data-about-field="name"></h1>
+                                <span class="profile-role" data-about-field="role"></span>
+                                <span class="profile-role-en" data-about-field="roleEn"></span>
+                            </span>
+                            <span class="profile-bio" data-about-field="shortBio"></span>
+                            <span class="profile-cta">关于我 <span aria-hidden="true">↗</span></span>
+                        </span>
+                    </a>
                 </aside>
             </div>
         </section>
 
         <section class="selected-works" aria-labelledby="selectedWorksTitle">
-            <div class="section-header"><p>CURATED SELECTION</p><h2 id="selectedWorksTitle">SELECTED WORKS <span>精选作品</span></h2></div>
+            <div class="section-header"><p>作品选集</p><h2 id="selectedWorksTitle">精选作品</h2></div>
             <div class="works-grid" id="worksGrid" aria-live="polite"></div>
         </section>
     </main>
@@ -97,8 +94,8 @@
                     <p id="modalDescription"></p>
                 </div>
                 <dl class="modal-project-meta">
-                    <div><dt>YEAR</dt><dd id="modalYear">—</dd></div>
-                    <div><dt>TYPE</dt><dd id="modalType">—</dd></div>
+                    <div><dt>年份</dt><dd id="modalYear">—</dd></div>
+                    <div><dt>类型</dt><dd id="modalType">—</dd></div>
                 </dl>
             </header>
             <div class="modal-visual">
@@ -107,12 +104,12 @@
                 <div class="modal-main-image"><img id="modalImage" alt="" loading="lazy" decoding="async"><div class="modal-counter" id="modalCounter"></div></div>
             </div>
             <section class="comparison-section" id="comparisonSection" aria-labelledby="comparisonTitle" hidden>
-                <div class="comparison-heading"><p>COLOR STUDY</p><h3 id="comparisonTitle">BEFORE / AFTER</h3></div>
+                <div class="comparison-heading"><p>调色对比</p><h3 id="comparisonTitle">调色前 / 调色后</h3></div>
                 <div class="comparison-stage" id="comparisonStage">
                     <img class="comparison-after" id="comparisonAfter" alt="调色后的画面" decoding="async">
                     <img class="comparison-before" id="comparisonBefore" alt="调色前的画面" decoding="async">
-                    <span class="comparison-label comparison-label-before">BEFORE</span>
-                    <span class="comparison-label comparison-label-after">AFTER</span>
+                    <span class="comparison-label comparison-label-before">调色前</span>
+                    <span class="comparison-label comparison-label-after">调色后</span>
                     <span class="comparison-divider" aria-hidden="true"></span>
                     <input id="comparisonRange" type="range" min="0" max="100" value="50" aria-label="拖动查看调色前后对比">
                 </div>
@@ -121,8 +118,9 @@
             <div class="modal-thumbnails" id="modalThumbnails" aria-label="作品缩略图"></div>
         </article>
     </div>
-    <script src="works-data.js?v=8"></script>
-    <script src="version.js?v=3"></script>
-    <script src="script.js?v=8"></script>
+    <script src="about-data.js?v=6"></script>
+    <script src="works-data.js?v=10"></script>
+    <script src="version.js?v=7"></script>
+    <script src="script.js?v=12"></script>
 </body>
 </html>
