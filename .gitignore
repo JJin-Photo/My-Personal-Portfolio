@@ -39,3 +39,12 @@ build/
 ._*
 .Spotlight-V100
 .Trashes
+
+# Local original photo folders imported for generating optimized web assets.
+# Keep these files on this machine, but do not push newly imported originals to GitHub Pages.
+/摄影/宝丽来/
+/摄影/胶片/
+/摄影/人像/绣球花/
+/剧照/呵呵/
+/剧照/春天坪/
+/剧照/未署名的故事/
